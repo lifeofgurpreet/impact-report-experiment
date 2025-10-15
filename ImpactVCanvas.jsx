@@ -575,6 +575,58 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
         'Seed funding granted'
       )
 
+      // Impact metrics
+      metrics.roi = getValue('Return on Impact multiplier')
+      metrics.value_created = getValue('Value created from seed funding')
+      metrics.volunteer_hours = getValue('Volunteer service hours')
+      metrics.websites_built = getValue('Websites built for partners')
+
+      // Survey/Satisfaction metrics
+      metrics.empowered = getValue('Empowered through social entrepreneurship')
+      metrics.will_continue = getValue(
+        'Plan to continue projects post-program',
+        'Will continue using digital tools',
+        'Plan to continue projects',
+        'Participant survey – will continue civic work'
+      )
+      metrics.satisfaction = getValue(
+        'Participant satisfaction – expectations met',
+        'Survey: Program met expectations',
+        'Overall summit satisfaction'
+      )
+      metrics.high_rating = getValue(
+        'Participant gave highest program rating',
+        'Survey: High program rating',
+        'Survey: High program rating'
+      )
+      metrics.interested_exchanges = getValue('Participants interested in US exchanges')
+      metrics.leadership_confidence = getValue(
+        'Leadership confidence',
+        'Leadership confidence increase',
+        'More confident in leadership roles'
+      )
+      metrics.program_valuable = getValue(
+        'Program valuable to development',
+        'Summit highly valuable to development'
+      )
+      metrics.network_access = getValue(
+        'Gained access to industry networks',
+        'New international climate networks'
+      )
+
+      // Demographics
+      metrics.female_pct = getValue('Female participants', 'Gender ratio - female', 'Female speakers')
+      metrics.male_pct = getValue('Male participants', 'Gender ratio - male')
+
+      // Partnerships & Program Details
+      metrics.universities = getValue('Universities engaged (3 bootcamps)', 'Universities engaged')
+      metrics.ngos = getValue('NGOs engaged (3 bootcamps)', 'NGOs engaged')
+      metrics.mentors = getValue('Mentors engaged', 'Regional mentors involved')
+      metrics.speakers = getValue('Speakers engaged', 'Speakers engaged (AI session)', 'YSEALI alumni speakers')
+      metrics.duration = getValue('Summit duration', 'Workshop & Game Jam duration')
+      metrics.sessions = getValue('Workshop sessions delivered', 'Workshops & sessions', 'Unconference sessions')
+      metrics.countries = getValue('Countries represented')
+
       return { ...item, metrics }
     })
   }, [effectiveData])
@@ -1030,6 +1082,18 @@ function ProgramDetail({ program, isMobile }) {
         <FundingDetail funding={p.metrics.funding} program={p} isMobile={isMobile} />
       )}
 
+      {p.metrics && (
+        <ImpactMetricsDetail metrics={p.metrics} isMobile={isMobile} />
+      )}
+
+      {p.metrics && (
+        <SurveyResultsDetail metrics={p.metrics} isMobile={isMobile} />
+      )}
+
+      {p.metrics && (
+        <DemographicsDetail metrics={p.metrics} isMobile={isMobile} />
+      )}
+
       {p.PrimaryOutcomes && p.PrimaryOutcomes.length > 0 && (
         <div style={{ marginTop: 14, fontSize: isMobile ? 16 : 15, background: 'rgba(139,92,246,0.08)', padding: isMobile ? 12 : 12, borderRadius: 8 }}>
           <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: 8, fontSize: isMobile ? 16 : 15 }}>Primary Outcomes</div>
@@ -1065,6 +1129,230 @@ function FundingStatCard({ label, value, isMobile }) {
     <div style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.08))', padding: isMobile ? 12 : 14, borderRadius: 8, border: '1px solid rgba(16,185,129,0.2)' }}>
       <div style={{ fontSize: isMobile ? 12 : 12, color: '#6ee7b7', marginBottom: isMobile ? 4 : 4, fontWeight: 500 }}>{label}</div>
       <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, color: '#10b981', lineHeight: 1.2 }}>{value && Number.isFinite(value) ? `$${Number(value).toLocaleString()}` : (value || '—')}</div>
+    </div>
+  )
+}
+
+function SurveyResultsDetail({ metrics, isMobile }) {
+  // Check if any survey metrics exist
+  const hasSurveyMetrics =
+    Number.isFinite(metrics.satisfaction) ||
+    Number.isFinite(metrics.high_rating) ||
+    Number.isFinite(metrics.will_continue) ||
+    Number.isFinite(metrics.empowered) ||
+    Number.isFinite(metrics.interested_exchanges) ||
+    Number.isFinite(metrics.leadership_confidence) ||
+    Number.isFinite(metrics.program_valuable) ||
+    Number.isFinite(metrics.network_access)
+
+  if (!hasSurveyMetrics) return null
+
+  return (
+    <div style={{ marginTop: 12, marginBottom: 12, background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(37,99,235,0.04))', padding: isMobile ? 12 : 14, borderRadius: 8, border: '1px solid rgba(59,130,246,0.15)' }}>
+      <div style={{ fontWeight: 600, color: '#3b82f6', marginBottom: 10, fontSize: isMobile ? 16 : 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 18 }}>📊</span>
+        Survey Results & Participant Feedback
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 8 : 10 }}>
+        {Number.isFinite(metrics.satisfaction) && (
+          <div style={{ background: 'rgba(59,130,246,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#93c5fd', marginBottom: 4, fontWeight: 500 }}>Satisfaction Rate</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#3b82f6', lineHeight: 1.2 }}>
+              {metrics.satisfaction.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.will_continue) && (
+          <div style={{ background: 'rgba(59,130,246,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#93c5fd', marginBottom: 4, fontWeight: 500 }}>Will Continue Projects</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#3b82f6', lineHeight: 1.2 }}>
+              {metrics.will_continue.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.empowered) && (
+          <div style={{ background: 'rgba(59,130,246,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#93c5fd', marginBottom: 4, fontWeight: 500 }}>Felt Empowered</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#3b82f6', lineHeight: 1.2 }}>
+              {metrics.empowered.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.leadership_confidence) && (
+          <div style={{ background: 'rgba(59,130,246,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#93c5fd', marginBottom: 4, fontWeight: 500 }}>Leadership Confidence</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#3b82f6', lineHeight: 1.2 }}>
+              {metrics.leadership_confidence.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.program_valuable) && (
+          <div style={{ background: 'rgba(59,130,246,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#93c5fd', marginBottom: 4, fontWeight: 500 }}>Program Valuable</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#3b82f6', lineHeight: 1.2 }}>
+              {metrics.program_valuable.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.network_access) && (
+          <div style={{ background: 'rgba(59,130,246,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#93c5fd', marginBottom: 4, fontWeight: 500 }}>Gained Network Access</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#3b82f6', lineHeight: 1.2 }}>
+              {metrics.network_access.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.high_rating) && (
+          <div style={{ background: 'rgba(59,130,246,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#93c5fd', marginBottom: 4, fontWeight: 500 }}>High Rating</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#3b82f6', lineHeight: 1.2 }}>
+              {metrics.high_rating.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.interested_exchanges) && (
+          <div style={{ background: 'rgba(59,130,246,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#93c5fd', marginBottom: 4, fontWeight: 500 }}>Interested in US Exchanges</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#3b82f6', lineHeight: 1.2 }}>
+              {metrics.interested_exchanges.toFixed(1)}%
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: 10, fontSize: isMobile ? 14 : 13, color: '#93c5fd', fontStyle: 'italic', lineHeight: 1.6 }}>
+        📊 Participant feedback demonstrates high satisfaction, commitment to continued impact, and increased confidence
+      </div>
+    </div>
+  )
+}
+
+function ImpactMetricsDetail({ metrics, isMobile }) {
+  // Check if any impact metrics exist
+  const hasImpactMetrics =
+    Number.isFinite(metrics.roi) ||
+    Number.isFinite(metrics.value_created) ||
+    Number.isFinite(metrics.volunteer_hours) ||
+    Number.isFinite(metrics.websites_built) ||
+    Number.isFinite(metrics.volunteers)
+
+  if (!hasImpactMetrics) return null
+
+  // Format volunteer hours (handle "~1000" format)
+  const formatVolunteerHours = (val) => {
+    if (!val && val !== 0) return null
+    const str = String(val).replace(/[^0-9]/g, '')
+    const num = parseFloat(str)
+    return Number.isFinite(num) ? num.toLocaleString() : null
+  }
+
+  return (
+    <div style={{ marginTop: 12, marginBottom: 12, background: 'linear-gradient(135deg, rgba(251,146,60,0.08), rgba(245,158,11,0.04))', padding: isMobile ? 12 : 14, borderRadius: 8, border: '1px solid rgba(251,146,60,0.15)' }}>
+      <div style={{ fontWeight: 600, color: '#fb923c', marginBottom: 10, fontSize: isMobile ? 16 : 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 18 }}>⚡</span>
+        Impact Metrics
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 8 : 10 }}>
+        {Number.isFinite(metrics.roi) && (
+          <div style={{ background: 'rgba(251,146,60,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(251,146,60,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#fdba74', marginBottom: 4, fontWeight: 500 }}>Return on Impact</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#fb923c', lineHeight: 1.2 }}>
+              {metrics.roi.toFixed(1)}x
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.value_created) && (
+          <div style={{ background: 'rgba(251,146,60,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(251,146,60,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#fdba74', marginBottom: 4, fontWeight: 500 }}>Value Created</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#fb923c', lineHeight: 1.2 }}>
+              ${metrics.value_created.toLocaleString()}
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.volunteers) && (
+          <div style={{ background: 'rgba(251,146,60,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(251,146,60,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#fdba74', marginBottom: 4, fontWeight: 500 }}>Volunteers Engaged</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#fb923c', lineHeight: 1.2 }}>
+              {metrics.volunteers.toLocaleString()}
+            </div>
+          </div>
+        )}
+
+        {metrics.volunteer_hours && formatVolunteerHours(metrics.volunteer_hours) && (
+          <div style={{ background: 'rgba(251,146,60,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(251,146,60,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#fdba74', marginBottom: 4, fontWeight: 500 }}>Volunteer Hours</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#fb923c', lineHeight: 1.2 }}>
+              {formatVolunteerHours(metrics.volunteer_hours)}
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.websites_built) && (
+          <div style={{ background: 'rgba(251,146,60,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(251,146,60,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#fdba74', marginBottom: 4, fontWeight: 500 }}>Websites Built</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#fb923c', lineHeight: 1.2 }}>
+              {metrics.websites_built}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: 10, fontSize: isMobile ? 14 : 13, color: '#fdba74', fontStyle: 'italic', lineHeight: 1.6 }}>
+        ⚡ Demonstrating the multiplier effect and tangible value created beyond direct program outcomes
+      </div>
+    </div>
+  )
+}
+
+function DemographicsDetail({ metrics, isMobile }) {
+  // Check if any demographic metrics exist
+  const hasDemographicMetrics =
+    Number.isFinite(metrics.female_pct) ||
+    Number.isFinite(metrics.male_pct)
+
+  if (!hasDemographicMetrics) return null
+
+  return (
+    <div style={{ marginTop: 12, marginBottom: 12, background: 'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(147,51,234,0.04))', padding: isMobile ? 12 : 14, borderRadius: 8, border: '1px solid rgba(168,85,247,0.15)' }}>
+      <div style={{ fontWeight: 600, color: '#a855f7', marginBottom: 10, fontSize: isMobile ? 16 : 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 18 }}>👥</span>
+        Demographics & Participant Profile
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 8 : 10 }}>
+        {Number.isFinite(metrics.female_pct) && (
+          <div style={{ background: 'rgba(168,85,247,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(168,85,247,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#d8b4fe', marginBottom: 4, fontWeight: 500 }}>Female Participants</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#a855f7', lineHeight: 1.2 }}>
+              {metrics.female_pct.toFixed(1)}%
+            </div>
+          </div>
+        )}
+
+        {Number.isFinite(metrics.male_pct) && (
+          <div style={{ background: 'rgba(168,85,247,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, border: '1px solid rgba(168,85,247,0.2)' }}>
+            <div style={{ fontSize: isMobile ? 13 : 12, color: '#d8b4fe', marginBottom: 4, fontWeight: 500 }}>Male Participants</div>
+            <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#a855f7', lineHeight: 1.2 }}>
+              {metrics.male_pct.toFixed(1)}%
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: 10, fontSize: isMobile ? 14 : 13, color: '#d8b4fe', fontStyle: 'italic', lineHeight: 1.6 }}>
+        👥 Demographic distribution demonstrates inclusive participation across diverse backgrounds
+      </div>
     </div>
   )
 }
@@ -1183,6 +1471,21 @@ SmallStat.propTypes = {
 FundingStatCard.propTypes = {
   label: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  isMobile: PropTypes.bool
+}
+
+SurveyResultsDetail.propTypes = {
+  metrics: PropTypes.object.isRequired,
+  isMobile: PropTypes.bool
+}
+
+ImpactMetricsDetail.propTypes = {
+  metrics: PropTypes.object.isRequired,
+  isMobile: PropTypes.bool
+}
+
+DemographicsDetail.propTypes = {
+  metrics: PropTypes.object.isRequired,
   isMobile: PropTypes.bool
 }
 
