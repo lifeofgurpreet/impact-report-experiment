@@ -946,32 +946,32 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
                       flexShrink: 0
                     }}
                   >
-                    <div style={{ fontSize: isMobile ? 15 : 14, fontWeight: 600, marginBottom: 4, lineHeight: 1.4 }}>{truncate(d.title, 40)}</div>
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: palette.muted, marginBottom: 10 }}>{d.year}</div>
+                    <div style={{ fontSize: isMobile ? 16 : 15, fontWeight: 600, marginBottom: 4, lineHeight: 1.4 }}>{truncate(d.title, 40)}</div>
+                    <div style={{ fontSize: isMobile ? 15 : 14, color: palette.muted, marginBottom: 10 }}>{d.year}</div>
 
-                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 13 : 12 }}>Participants</small>
+                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 14 : 13 }}>Participants</small>
                     <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden', marginBottom: 8 }}>
                       <div style={{ height: '100%', width: `${scaleLinear(maxParticipants,100,d.participants)}%`, background: palette.accent }} />
                     </div>
 
-                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 13 : 12 }}>Reach</small>
+                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 14 : 13 }}>Reach</small>
                     <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden', marginBottom: 8 }}>
                       <div style={{ height: '100%', width: `${scaleLinear(maxReach,100,d.reach)}%`, background: palette.accent2 }} />
                     </div>
 
-                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 13 : 12 }}>Funding</small>
+                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 14 : 13 }}>Funding</small>
                     <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${scaleLinear(maxFunding,100,d.funding)}%`, background: '#10b981' }} />
                     </div>
 
-                    <div style={{ marginTop: 10, fontSize: isMobile ? 15 : 14, fontWeight: 600 }}>
+                    <div style={{ marginTop: 10, fontSize: isMobile ? 16 : 15, fontWeight: 600 }}>
                       {d.participants ? d.participants.toLocaleString() : '—'} participants
                     </div>
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: palette.muted }}>
+                    <div style={{ fontSize: isMobile ? 15 : 14, color: palette.muted }}>
                       {d.reach ? d.reach.toLocaleString() : '—'} reach
                     </div>
                     {d.funding > 0 && (
-                      <div style={{ fontSize: isMobile ? 14 : 13, color: '#10b981', fontWeight: 500 }}>
+                      <div style={{ fontSize: isMobile ? 15 : 14, color: '#10b981', fontWeight: 500 }}>
                         ${d.funding.toLocaleString()} funding
                       </div>
                     )}
@@ -1007,14 +1007,14 @@ function ProgramDetail({ program, isMobile }) {
   return (
     <div style={{ maxHeight: isMobile ? '60vh' : '80vh', overflowY: 'auto', paddingRight: 8, WebkitOverflowScrolling: 'touch' }}>
       <div style={{ fontSize: isMobile ? 18 : 19, fontWeight: 700, marginBottom: 6, lineHeight: 1.3 }}>{program.title || p.ProgramName || p.Title}</div>
-      <div style={{ fontSize: isMobile ? 14 : 13, color: '#cbd5e1', marginBottom: 12, lineHeight: 1.5 }}>
+      <div style={{ fontSize: isMobile ? 15 : 14, color: '#cbd5e1', marginBottom: 12, lineHeight: 1.6 }}>
         {program.year || p.Year} • {p.GeographicScope}
-        {p.DataQualityRating && <span style={{ marginLeft: 8, fontSize: isMobile ? 11 : 10, padding: '3px 8px', background: 'rgba(139,92,246,0.25)', borderRadius: 4, fontWeight: 500 }}>Data: {p.DataQualityRating}</span>}
+        {p.DataQualityRating && <span style={{ marginLeft: 8, fontSize: isMobile ? 12 : 11, padding: '3px 8px', background: 'rgba(139,92,246,0.25)', borderRadius: 4, fontWeight: 500 }}>Data: {p.DataQualityRating}</span>}
       </div>
 
       {p.TheoryOfChangeSummary && (
-        <div style={{ fontSize: isMobile ? 14 : 13, marginBottom: 14, color: '#e2e8f0', lineHeight: 1.6, background: 'rgba(255,255,255,0.04)', padding: isMobile ? 12 : 12, borderRadius: 8 }}>
-          <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: 6, fontSize: isMobile ? 13 : 12 }}>Theory of Change</div>
+        <div style={{ fontSize: isMobile ? 16 : 15, marginBottom: 14, color: '#e2e8f0', lineHeight: 1.7, background: 'rgba(255,255,255,0.04)', padding: isMobile ? 12 : 12, borderRadius: 8 }}>
+          <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: 6, fontSize: isMobile ? 15 : 14 }}>Theory of Change</div>
           {p.TheoryOfChangeSummary}
         </div>
       )}
@@ -1031,19 +1031,19 @@ function ProgramDetail({ program, isMobile }) {
       )}
 
       {p.PrimaryOutcomes && p.PrimaryOutcomes.length > 0 && (
-        <div style={{ marginTop: 14, fontSize: isMobile ? 14 : 13, background: 'rgba(139,92,246,0.08)', padding: isMobile ? 12 : 12, borderRadius: 8 }}>
-          <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: 8, fontSize: isMobile ? 13 : 12 }}>Primary Outcomes</div>
+        <div style={{ marginTop: 14, fontSize: isMobile ? 16 : 15, background: 'rgba(139,92,246,0.08)', padding: isMobile ? 12 : 12, borderRadius: 8 }}>
+          <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: 8, fontSize: isMobile ? 16 : 15 }}>Primary Outcomes</div>
           <ul style={{ marginTop: 6, paddingLeft: isMobile ? 18 : 20, color: '#e2e8f0', marginBottom: 0 }}>
-            {p.PrimaryOutcomes.map((q,i) => <li key={i} style={{ marginBottom: 8, lineHeight: 1.6 }}>{q}</li>)}
+            {p.PrimaryOutcomes.map((q,i) => <li key={i} style={{ marginBottom: 10, lineHeight: 1.7 }}>{q}</li>)}
           </ul>
         </div>
       )}
 
       {p.QualitativeInsights && p.QualitativeInsights.length > 0 && (
-        <div style={{ marginTop: 14, fontSize: isMobile ? 14 : 13, background: 'rgba(34,211,238,0.08)', padding: isMobile ? 12 : 12, borderRadius: 8 }}>
-          <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: 8, fontSize: isMobile ? 13 : 12 }}>Qualitative Insights</div>
+        <div style={{ marginTop: 14, fontSize: isMobile ? 16 : 15, background: 'rgba(34,211,238,0.08)', padding: isMobile ? 12 : 12, borderRadius: 8 }}>
+          <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: 8, fontSize: isMobile ? 16 : 15 }}>Qualitative Insights</div>
           <ul style={{ marginTop: 6, paddingLeft: isMobile ? 18 : 20, color: '#e2e8f0', marginBottom: 0 }}>
-            {p.QualitativeInsights.map((q,i) => <li key={i} style={{ marginBottom: 8, lineHeight: 1.6 }}>{q}</li>)}
+            {p.QualitativeInsights.map((q,i) => <li key={i} style={{ marginBottom: 10, lineHeight: 1.7 }}>{q}</li>)}
           </ul>
         </div>
       )}
@@ -1054,8 +1054,8 @@ function ProgramDetail({ program, isMobile }) {
 function SmallStat({ label, value, isMobile }) {
   return (
     <div style={{ background: 'rgba(255,255,255,0.04)', padding: isMobile ? 10 : 12, borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)' }}>
-      <div style={{ fontSize: isMobile ? 12 : 12, color: '#cbd5e1', marginBottom: isMobile ? 4 : 4, fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: isMobile ? 18 : 18, fontWeight: 700, lineHeight: 1.2 }}>{value && Number.isFinite(value) ? Number(value).toLocaleString() : (value || '—')}</div>
+      <div style={{ fontSize: isMobile ? 14 : 13, color: '#cbd5e1', marginBottom: isMobile ? 4 : 4, fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: isMobile ? 20 : 19, fontWeight: 700, lineHeight: 1.2 }}>{value && Number.isFinite(value) ? Number(value).toLocaleString() : (value || '—')}</div>
     </div>
   )
 }
@@ -1087,14 +1087,14 @@ function FundingDetail({ funding, program, isMobile }) {
 
   return (
     <div style={{ marginTop: 12, marginBottom: 12, background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.04))', padding: isMobile ? 12 : 14, borderRadius: 8, border: '1px solid rgba(16,185,129,0.15)' }}>
-      <div style={{ fontWeight: 600, color: '#10b981', marginBottom: 10, fontSize: isMobile ? 14 : 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ fontWeight: 600, color: '#10b981', marginBottom: 10, fontSize: isMobile ? 16 : 15, display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: 18 }}>💰</span>
         Funding Breakdown
       </div>
 
       <div style={{ background: 'rgba(16,185,129,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, marginBottom: 10, border: '1px solid rgba(16,185,129,0.2)' }}>
-        <div style={{ fontSize: isMobile ? 12 : 11, color: '#6ee7b7', marginBottom: 4, fontWeight: 500 }}>Total Seed Funding</div>
-        <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#10b981', lineHeight: 1.2 }}>
+        <div style={{ fontSize: isMobile ? 14 : 13, color: '#6ee7b7', marginBottom: 4, fontWeight: 500 }}>Total Seed Funding</div>
+        <div style={{ fontSize: isMobile ? 26 : 28, fontWeight: 700, color: '#10b981', lineHeight: 1.2 }}>
           ${funding.toLocaleString()}
         </div>
       </div>
@@ -1103,8 +1103,8 @@ function FundingDetail({ funding, program, isMobile }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: isMobile ? 6 : 8 }}>
           {fundingMetrics.map((m, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? 8 : 10, background: 'rgba(255,255,255,0.03)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: isMobile ? 13 : 12, color: '#cbd5e1', lineHeight: 1.4, flex: 1 }}>{m.name}</div>
-              <div style={{ fontSize: isMobile ? 14 : 13, fontWeight: 600, color: '#10b981', whiteSpace: 'nowrap', marginLeft: 12 }}>
+              <div style={{ fontSize: isMobile ? 15 : 14, color: '#cbd5e1', lineHeight: 1.4, flex: 1 }}>{m.name}</div>
+              <div style={{ fontSize: isMobile ? 16 : 15, fontWeight: 600, color: '#10b981', whiteSpace: 'nowrap', marginLeft: 12 }}>
                 {m.unit === 'USD' ? `$${parseFloat(m.value).toLocaleString()}` : `${m.value} ${m.unit}`}
               </div>
             </div>
@@ -1112,7 +1112,7 @@ function FundingDetail({ funding, program, isMobile }) {
         </div>
       )}
 
-      <div style={{ marginTop: 10, fontSize: isMobile ? 12 : 11, color: '#6ee7b7', fontStyle: 'italic', lineHeight: 1.5 }}>
+      <div style={{ marginTop: 10, fontSize: isMobile ? 14 : 13, color: '#6ee7b7', fontStyle: 'italic', lineHeight: 1.6 }}>
         💡 Seed funding provided to support program implementation and participant projects
       </div>
     </div>
