@@ -533,6 +533,42 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
         'Initial webinar reach (Phase 1)'
       )
       metrics.volunteers = getValue('Volunteers engaged')
+
+      // Enhanced funding extraction with proper mapping to avoid double-counting
+      // Games Bagus: USD 9,000 (line 228)
+      // Game Changers: USD 30,000 regional only (line 272), NOT 41,000 total
+      // Bootcamps 2020/2022: USD 20,000 aggregate shared across 3 bootcamps (lines 85, 136)
+      // YSEALI Summit Brunei 2022: Small Grants USD 24,500 + Career Fellowship USD 9,000 monthly
+      const programName = item.ProgramName || item.Title || ''
+
+      if (programName.includes('Boot Camp 2019') || programName.includes('Bootcamp 2019')) {
+        metrics.funding = getValue('Seed funding provided') // 8,000
+      } else if (programName.includes('Boot Camp 2020') || programName.includes('Bootcamp 2020')) {
+        // Share of 20,000 across 3 bootcamps - assign to 2020 report
+        metrics.funding = 20000
+      } else if (programName.includes('Boot Camp 2022') || programName.includes('Bootcamp 2022')) {
+        // Already counted in 2020, so 0 to avoid double-counting
+        metrics.funding = 0
+      } else if (programName.includes('Games Bagus')) {
+        metrics.funding = 9000
+      } else if (programName.includes('Game Changers')) {
+        metrics.funding = 30000 // Regional funding only, not 41,000
+      } else if (programName.includes('Summit Brunei 2022') || programName.includes('Summit 2022 Brunei')) {
+        // Small Grants + Career Fellowship monthly
+        const smallGrants = getValue('Total Small Grants funding') // 24,500
+        const fellowship = getValue('Total monthly Career Fellowship funding') // 9,000
+        metrics.funding = (Number.isFinite(smallGrants) ? smallGrants : 0) + (Number.isFinite(fellowship) ? fellowship : 0)
+      } else {
+        // Fallback for other programs
+        metrics.funding = getValue(
+          'Seed funding provided',
+          'Total Small Grants funding',
+          'Seed funding awarded',
+          'Seed funding granted (regional)',
+          'Seed funding (3 bootcamps aggregate)'
+        )
+      }
+
       metrics.funds = getValue(
         'Funds raised for partners',
         'Seed funding awarded',
@@ -559,6 +595,7 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
       projects: Number.isFinite(d.metrics.projects_done) ? d.metrics.projects_done : (Number.isFinite(d.metrics.projects_initiated) ? d.metrics.projects_initiated : 0),
       reach: Number.isFinite(d.metrics.reach) ? d.metrics.reach : 0,
       funds: Number.isFinite(d.metrics.funds) ? d.metrics.funds : 0,
+      funding: Number.isFinite(d.metrics.funding) ? d.metrics.funding : 0,
       program: d
     }))
     arr.sort((a,b) => (b.participants || 0) - (a.participants || 0))
@@ -576,6 +613,7 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
   const maxParticipants = Math.max(1, ...chartData.map(d => Number.isFinite(d.participants) ? d.participants : 0))
   const maxReach = Math.max(1, ...chartData.map(d => Number.isFinite(d.reach) ? d.reach : 0))
   const maxProjects = Math.max(1, ...chartData.map(d => Number.isFinite(d.projects) ? d.projects : 0))
+  const maxFunding = Math.max(1, ...chartData.map(d => Number.isFinite(d.funding) ? d.funding : 0))
 
   const containerRef = useRef(null)
   const [width, setWidth] = useState(1100)
@@ -626,14 +664,15 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
 
   // Export data as CSV
   const handleExport = useCallback(() => {
-    const headers = ['Program', 'Year', 'Participants', 'Projects', 'Reach', 'Applications']
+    const headers = ['Program', 'Year', 'Participants', 'Projects', 'Reach', 'Applications', 'Funding (USD)']
     const rows = filtered.map(d => [
       d.ProgramName || d.Title,
       d.Year,
       d.metrics.participants || 0,
       d.metrics.projects_done || d.metrics.projects_initiated || 0,
       d.metrics.reach || 0,
-      d.metrics.applications || 0
+      d.metrics.applications || 0,
+      d.metrics.funding || 0
     ])
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -734,11 +773,12 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
       </div>
 
       {/* Top KPI cards */}
-      <div role="region" aria-label="Key performance indicators" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : (width > 900 ? 'repeat(4,1fr)' : 'repeat(2,1fr)'), gap: isMobile ? 10 : 12, marginBottom: isMobile ? 20 : 16 }}>
+      <div role="region" aria-label="Key performance indicators" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : (width > 1100 ? 'repeat(5,1fr)' : (width > 900 ? 'repeat(3,1fr)' : 'repeat(2,1fr)')), gap: isMobile ? 10 : 12, marginBottom: isMobile ? 20 : 16 }}>
         <KpiCard title="Programs" value={filtered.length} detail="Filtered programs" palette={palette} isMobile={isMobile} />
         <KpiCard title="Total Participants" value={Math.round(chartData.reduce((s,d)=>s+(d.participants||0),0)).toLocaleString()} detail="Sum of participants" palette={palette} isMobile={isMobile} />
         <KpiCard title="Total Projects" value={Math.round(chartData.reduce((s,d)=>s+(d.projects||0),0))} detail="Implemented or initiated" palette={palette} isMobile={isMobile} />
         <KpiCard title="Total Reach" value={Math.round(chartData.reduce((s,d)=>s+(d.reach||0),0)).toLocaleString()} detail="Aggregate online reach" palette={palette} isMobile={isMobile} />
+        <KpiCard title="Total Funding" value={`$${Math.round(chartData.reduce((s,d)=>s+(d.funding||0),0)).toLocaleString()}`} detail="USD seed funding provided" palette={palette} isMobile={isMobile} />
       </div>
 
       {/* Empty state */}
@@ -765,20 +805,30 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', gap: isMobile ? 8 : 12, flexDirection: 'column' }}>
-            {/* Bar chart */}
+          <div style={{ display: 'flex', gap: isMobile ? 12 : 12, flexDirection: 'column' }}>
+            {/* Combined Participants & Funding Chart */}
             <div style={{ background: palette.card, padding: isMobile ? 16 : 16, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)' }}>
-              <h3 style={{ marginTop: 0, marginBottom: 12, fontSize: isMobile ? 18 : 20, fontWeight: 600, lineHeight: 1.3 }}>Participants by Program</h3>
+              <h3 style={{ marginTop: 0, marginBottom: 8, fontSize: isMobile ? 20 : 22, fontWeight: 600, lineHeight: 1.3 }}>Program Impact Overview</h3>
+              <div style={{ fontSize: isMobile ? 15 : 14, color: palette.muted, marginBottom: 12, lineHeight: 1.6 }}>
+                {isMobile ? 'Showing participants and funding for each program' : 'Participants and funding distribution across all programs. Tap any bar to view detailed program information.'}
+              </div>
               <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <svg
                   width={isMobile ? 700 : Math.min(Math.max(CHART_CONSTANTS.MIN_CHART_WIDTH, width*0.6), width - 32)}
-                  height={Math.max(CHART_CONSTANTS.CHART_MIN_HEIGHT, chartData.length * CHART_CONSTANTS.ROW_HEIGHT + 40)}
+                  height={Math.max(CHART_CONSTANTS.CHART_MIN_HEIGHT, chartData.length * 68 + 80)}
                   role="img"
-                  aria-label="Bar chart showing participants by program"
+                  aria-label="Combined bar chart showing participants and funding by program"
                 >
+                  <defs>
+                    <linearGradient id="participantsGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" style={{ stopColor: palette.accent, stopOpacity: 1 }} />
+                      <stop offset="100%" style={{ stopColor: palette.accent2, stopOpacity: 1 }} />
+                    </linearGradient>
+                  </defs>
                   {chartData.map((d,i) => {
-                    const y = 35 + i * CHART_CONSTANTS.ROW_HEIGHT
-                    const barW = scaleLinear(maxParticipants, CHART_CONSTANTS.BAR_MAX_WIDTH, d.participants)
+                    const y = 50 + i * 68
+                    const participantsBarW = scaleLinear(maxParticipants, CHART_CONSTANTS.BAR_MAX_WIDTH, d.participants)
+                    const fundingBarW = scaleLinear(maxFunding, CHART_CONSTANTS.BAR_MAX_WIDTH, d.funding)
                     const isSelected = selectedProgram && selectedProgram.title === d.title
                     return (
                       <g
@@ -788,22 +838,50 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
                         onKeyPress={(e) => e.key === 'Enter' && handleClick(d)}
                         tabIndex={0}
                         role="button"
-                        aria-label={`Program: ${d.title}, Year: ${d.year}, ${d.participants} participants`}
+                        aria-label={`Program: ${d.title}, Year: ${d.year}, ${d.participants} participants, $${d.funding.toLocaleString()} funding`}
                         aria-pressed={isSelected}
                         style={{ cursor: 'pointer', outline: 'none' }}
                       >
-                        <rect x={CHART_CONSTANTS.BAR_X_POSITION} y={-20} width={barW} height={32} rx={6} fill={i===0?palette.accent:palette.accent2} opacity={selectedProgram && !isSelected?0.3:1} style={{ transition: 'all 0.2s' }} />
-                        <text x={CHART_CONSTANTS.LABEL_X_POSITION} y={6} fill={palette.fg} fontSize={13} fontWeight={isSelected ? 600 : 400}>{truncate(d.title, 45)}</text>
-                        <text x={CHART_CONSTANTS.LABEL_X_POSITION} y={-8} fill={palette.muted} fontSize={11}>{d.year}</text>
-                        <text x={CHART_CONSTANTS.VALUE_X_POSITION} y={6} fill={palette.muted} fontSize={13} fontWeight={600}>{d.participants ? d.participants.toLocaleString() : '—'}</text>
-                        {isSelected && <rect x={0} y={-22} width={800} height={36} fill="none" stroke={palette.accent} strokeWidth={2} rx={6} />}
+                        {/* Program title and year */}
+                        <text x={CHART_CONSTANTS.LABEL_X_POSITION} y={-12} fill={palette.fg} fontSize={isMobile ? 14 : 14} fontWeight={isSelected ? 600 : 500}>{truncate(d.title, 45)}</text>
+                        <text x={CHART_CONSTANTS.LABEL_X_POSITION} y={-26} fill={palette.muted} fontSize={isMobile ? 12 : 11}>{d.year}</text>
+
+                        {/* Participants bar (top) */}
+                        <text x={CHART_CONSTANTS.BAR_X_POSITION - 40} y={-2} fill={palette.accent} fontSize={isMobile ? 11 : 10} fontWeight={500}>👥</text>
+                        <rect x={CHART_CONSTANTS.BAR_X_POSITION} y={-10} width={participantsBarW} height={18} rx={4} fill="url(#participantsGradient)" opacity={selectedProgram && !isSelected?0.3:1} style={{ transition: 'all 0.2s' }} />
+                        <text x={CHART_CONSTANTS.VALUE_X_POSITION} y={2} fill={palette.fg} fontSize={isMobile ? 13 : 12} fontWeight={600}>{d.participants ? d.participants.toLocaleString() : '—'}</text>
+
+                        {/* Funding bar (bottom) */}
+                        {d.funding > 0 && (
+                          <>
+                            <text x={CHART_CONSTANTS.BAR_X_POSITION - 40} y={20} fill="#10b981" fontSize={isMobile ? 11 : 10} fontWeight={500}>💰</text>
+                            <rect x={CHART_CONSTANTS.BAR_X_POSITION} y={12} width={fundingBarW} height={18} rx={4} fill="#10b981" opacity={selectedProgram && !isSelected?0.3:1} style={{ transition: 'all 0.2s' }} />
+                            <text x={CHART_CONSTANTS.VALUE_X_POSITION} y={24} fill="#10b981" fontSize={isMobile ? 13 : 12} fontWeight={600}>${d.funding.toLocaleString()}</text>
+                          </>
+                        )}
+
+                        {/* Selection highlight */}
+                        {isSelected && <rect x={0} y={-32} width={800} height={60} fill="none" stroke={palette.accent} strokeWidth={2} rx={8} />}
                       </g>
                     )
                   })}
                 </svg>
               </div>
-              <div style={{ marginTop: 12, color: palette.muted, fontSize: isMobile ? 14 : 13, lineHeight: 1.5 }}>
-                {isMobile ? 'Tap a bar to view details' : 'Click on a bar to view full program details. Click again or use the Close button to deselect. Use filters above to refine.'}
+
+              {/* Legend */}
+              <div style={{ marginTop: 16, display: 'flex', gap: isMobile ? 16 : 24, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: isMobile ? 32 : 24, height: isMobile ? 14 : 12, background: `linear-gradient(90deg, ${palette.accent}, ${palette.accent2})`, borderRadius: 4 }} />
+                  <span style={{ fontSize: isMobile ? 15 : 14, color: palette.fg, fontWeight: 500 }}>Participants</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: isMobile ? 32 : 24, height: isMobile ? 14 : 12, background: '#10b981', borderRadius: 4 }} />
+                  <span style={{ fontSize: isMobile ? 15 : 14, color: palette.fg, fontWeight: 500 }}>Funding (USD)</span>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 14, color: palette.muted, fontSize: isMobile ? 16 : 15, lineHeight: 1.7, textAlign: 'center', padding: isMobile ? '0 8px' : 0 }}>
+                {isMobile ? 'Tap any program to view complete details including outcomes and insights' : 'Click on any program bar to view complete details including theory of change, outcomes, funding breakdown, and qualitative insights. Click again or use the Close button to deselect.'}
               </div>
             </div>
 
@@ -843,7 +921,7 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
 
           {/* Comparative Overview */}
           <div style={{ marginTop: isMobile ? 12 : 18, background: palette.card, padding: isMobile ? 16 : 16, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)' }}>
-            <h3 style={{ marginTop: 0, marginBottom: 12, fontSize: isMobile ? 18 : 20, fontWeight: 600, lineHeight: 1.3 }}>Comparative Overview</h3>
+            <h3 style={{ marginTop: 0, marginBottom: 12, fontSize: isMobile ? 20 : 22, fontWeight: 600, lineHeight: 1.3 }}>Comparative Overview</h3>
             <div role="list" style={{ display: 'flex', gap: isMobile ? 8 : 12, overflowX: 'auto', paddingBottom: 8, WebkitOverflowScrolling: 'touch', scrollSnapType: isMobile ? 'x mandatory' : 'none' }}>
               {chartData.map((d,i) => {
                 const isSelected = selectedProgram && selectedProgram.title === d.title
@@ -868,32 +946,42 @@ export default function ImpactVCanvas({ data = DATA, palette = defaultPalette })
                       flexShrink: 0
                     }}
                   >
-                    <div style={{ fontSize: isMobile ? 14 : 13, fontWeight: 600, marginBottom: 4, lineHeight: 1.4 }}>{truncate(d.title, 40)}</div>
-                    <div style={{ fontSize: isMobile ? 13 : 12, color: palette.muted, marginBottom: 10 }}>{d.year}</div>
+                    <div style={{ fontSize: isMobile ? 15 : 14, fontWeight: 600, marginBottom: 4, lineHeight: 1.4 }}>{truncate(d.title, 40)}</div>
+                    <div style={{ fontSize: isMobile ? 14 : 13, color: palette.muted, marginBottom: 10 }}>{d.year}</div>
 
-                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 12 : 11 }}>Participants</small>
+                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 13 : 12 }}>Participants</small>
                     <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden', marginBottom: 8 }}>
                       <div style={{ height: '100%', width: `${scaleLinear(maxParticipants,100,d.participants)}%`, background: palette.accent }} />
                     </div>
 
-                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 12 : 11 }}>Reach</small>
-                    <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden' }}>
+                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 13 : 12 }}>Reach</small>
+                    <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden', marginBottom: 8 }}>
                       <div style={{ height: '100%', width: `${scaleLinear(maxReach,100,d.reach)}%`, background: palette.accent2 }} />
                     </div>
 
-                    <div style={{ marginTop: 10, fontSize: isMobile ? 14 : 13, fontWeight: 600 }}>
+                    <small style={{ display: 'block', marginBottom: 4, color: palette.muted, fontSize: isMobile ? 13 : 12 }}>Funding</small>
+                    <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${scaleLinear(maxFunding,100,d.funding)}%`, background: '#10b981' }} />
+                    </div>
+
+                    <div style={{ marginTop: 10, fontSize: isMobile ? 15 : 14, fontWeight: 600 }}>
                       {d.participants ? d.participants.toLocaleString() : '—'} participants
                     </div>
-                    <div style={{ fontSize: isMobile ? 13 : 12, color: palette.muted }}>
+                    <div style={{ fontSize: isMobile ? 14 : 13, color: palette.muted }}>
                       {d.reach ? d.reach.toLocaleString() : '—'} reach
                     </div>
+                    {d.funding > 0 && (
+                      <div style={{ fontSize: isMobile ? 14 : 13, color: '#10b981', fontWeight: 500 }}>
+                        ${d.funding.toLocaleString()} funding
+                      </div>
+                    )}
                   </div>
                 )
               })}
             </div>
           </div>
 
-          <div style={{ marginTop: 16, color: palette.muted, fontSize: 12, textAlign: 'center' }}>
+          <div style={{ marginTop: 16, color: palette.muted, fontSize: isMobile ? 14 : 13, textAlign: 'center', lineHeight: 1.6 }}>
             Interactive visualization for YSEALI & Games impact data • {effectiveData.length} programs total
           </div>
         </>
@@ -918,7 +1006,7 @@ function ProgramDetail({ program, isMobile }) {
   const p = program.program || program
   return (
     <div style={{ maxHeight: isMobile ? '60vh' : '80vh', overflowY: 'auto', paddingRight: 8, WebkitOverflowScrolling: 'touch' }}>
-      <div style={{ fontSize: isMobile ? 17 : 18, fontWeight: 700, marginBottom: 6, lineHeight: 1.3 }}>{program.title || p.ProgramName || p.Title}</div>
+      <div style={{ fontSize: isMobile ? 18 : 19, fontWeight: 700, marginBottom: 6, lineHeight: 1.3 }}>{program.title || p.ProgramName || p.Title}</div>
       <div style={{ fontSize: isMobile ? 14 : 13, color: '#cbd5e1', marginBottom: 12, lineHeight: 1.5 }}>
         {program.year || p.Year} • {p.GeographicScope}
         {p.DataQualityRating && <span style={{ marginLeft: 8, fontSize: isMobile ? 11 : 10, padding: '3px 8px', background: 'rgba(139,92,246,0.25)', borderRadius: 4, fontWeight: 500 }}>Data: {p.DataQualityRating}</span>}
@@ -937,6 +1025,10 @@ function ProgramDetail({ program, isMobile }) {
         <SmallStat label="Reach" value={p.metrics?.reach} isMobile={isMobile} />
         <SmallStat label="Applications" value={p.metrics?.applications} isMobile={isMobile} />
       </div>
+
+      {p.metrics?.funding > 0 && (
+        <FundingDetail funding={p.metrics.funding} program={p} isMobile={isMobile} />
+      )}
 
       {p.PrimaryOutcomes && p.PrimaryOutcomes.length > 0 && (
         <div style={{ marginTop: 14, fontSize: isMobile ? 14 : 13, background: 'rgba(139,92,246,0.08)', padding: isMobile ? 12 : 12, borderRadius: 8 }}>
@@ -964,6 +1056,65 @@ function SmallStat({ label, value, isMobile }) {
     <div style={{ background: 'rgba(255,255,255,0.04)', padding: isMobile ? 10 : 12, borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)' }}>
       <div style={{ fontSize: isMobile ? 12 : 12, color: '#cbd5e1', marginBottom: isMobile ? 4 : 4, fontWeight: 500 }}>{label}</div>
       <div style={{ fontSize: isMobile ? 18 : 18, fontWeight: 700, lineHeight: 1.2 }}>{value && Number.isFinite(value) ? Number(value).toLocaleString() : (value || '—')}</div>
+    </div>
+  )
+}
+
+function FundingStatCard({ label, value, isMobile }) {
+  return (
+    <div style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.08))', padding: isMobile ? 12 : 14, borderRadius: 8, border: '1px solid rgba(16,185,129,0.2)' }}>
+      <div style={{ fontSize: isMobile ? 12 : 12, color: '#6ee7b7', marginBottom: isMobile ? 4 : 4, fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, color: '#10b981', lineHeight: 1.2 }}>{value && Number.isFinite(value) ? `$${Number(value).toLocaleString()}` : (value || '—')}</div>
+    </div>
+  )
+}
+
+function FundingDetail({ funding, program, isMobile }) {
+  // Extract funding-related metrics from the program
+  const fundingMetrics = []
+
+  if (program.QuantitativeMetrics && Array.isArray(program.QuantitativeMetrics)) {
+    program.QuantitativeMetrics.forEach(m => {
+      const name = m.name || ''
+      if (name.toLowerCase().includes('funding') ||
+          name.toLowerCase().includes('grant') ||
+          name.toLowerCase().includes('stipend') ||
+          name.toLowerCase().includes('seed')) {
+        fundingMetrics.push(m)
+      }
+    })
+  }
+
+  return (
+    <div style={{ marginTop: 12, marginBottom: 12, background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.04))', padding: isMobile ? 12 : 14, borderRadius: 8, border: '1px solid rgba(16,185,129,0.15)' }}>
+      <div style={{ fontWeight: 600, color: '#10b981', marginBottom: 10, fontSize: isMobile ? 14 : 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 18 }}>💰</span>
+        Funding Breakdown
+      </div>
+
+      <div style={{ background: 'rgba(16,185,129,0.1)', padding: isMobile ? 10 : 12, borderRadius: 6, marginBottom: 10, border: '1px solid rgba(16,185,129,0.2)' }}>
+        <div style={{ fontSize: isMobile ? 12 : 11, color: '#6ee7b7', marginBottom: 4, fontWeight: 500 }}>Total Seed Funding</div>
+        <div style={{ fontSize: isMobile ? 24 : 26, fontWeight: 700, color: '#10b981', lineHeight: 1.2 }}>
+          ${funding.toLocaleString()}
+        </div>
+      </div>
+
+      {fundingMetrics.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: isMobile ? 6 : 8 }}>
+          {fundingMetrics.map((m, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? 8 : 10, background: 'rgba(255,255,255,0.03)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: isMobile ? 13 : 12, color: '#cbd5e1', lineHeight: 1.4, flex: 1 }}>{m.name}</div>
+              <div style={{ fontSize: isMobile ? 14 : 13, fontWeight: 600, color: '#10b981', whiteSpace: 'nowrap', marginLeft: 12 }}>
+                {m.unit === 'USD' ? `$${parseFloat(m.value).toLocaleString()}` : `${m.value} ${m.unit}`}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ marginTop: 10, fontSize: isMobile ? 12 : 11, color: '#6ee7b7', fontStyle: 'italic', lineHeight: 1.5 }}>
+        💡 Seed funding provided to support program implementation and participant projects
+      </div>
     </div>
   )
 }
@@ -1026,5 +1177,17 @@ ProgramDetail.propTypes = {
 SmallStat.propTypes = {
   label: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  isMobile: PropTypes.bool
+}
+
+FundingStatCard.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  isMobile: PropTypes.bool
+}
+
+FundingDetail.propTypes = {
+  funding: PropTypes.number.isRequired,
+  program: PropTypes.object.isRequired,
   isMobile: PropTypes.bool
 }
